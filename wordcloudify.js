@@ -18,6 +18,7 @@
         ,"we","we\'d","we\'ll","we\'re","we\'ve","were","weren\'t","what","what\'s","when","when\'s","where","where\'s","which","while","who","who\'s","whom","why","why\'s","with","won\'t","would"
         ,"wouldn\'t","you","you\'d","you\'ll","you\'re","you\'ve","your","yours","yourself","yourselves"],
         "cloud_limit" : 20,
+        "min_length" : 2,
         "min_font" : 0.75,
         "max_font" : 2.25,
         "font_unit" : "em"
@@ -99,7 +100,7 @@
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             
             return this.each(function(){
-                $(this).data("wordcloudify.original", $(this).detach());
+                $(this).data("wordcloudify.original", $(this).clone(true));
                 $(this).data("wordcloudify.settings", settings);
             });
         },
@@ -130,11 +131,13 @@
                 var weighted_words = [];
             
                 for(var i = 0; i < words.length; i++){
-                    if(tmp_weighted_words[words[i].toLowerCase()] === undefined){
-                        tmp_weighted_words[words[i].toLowerCase()] = 1;
-                    }
-                    else{
-                        tmp_weighted_words[words[i].toLowerCase()] += 1;
+                    if(words[i].length > settings.min_length){
+                        if(tmp_weighted_words[words[i].toLowerCase()] === undefined){
+                            tmp_weighted_words[words[i].toLowerCase()] = 1;
+                        }
+                        else{
+                            tmp_weighted_words[words[i].toLowerCase()] += 1;
+                        }
                     }
                 }
                 
