@@ -3,9 +3,7 @@ wordcloudify.js
 
 Wordcloudify.js is a jQuery plugin for dynamically generating word clouds based on any element or elements on the page.
 
-Wordcloudify.js is ported from [Wordcloudify-chrome](https://github.com/robinmalburn/wordcloudify-chrome)
-
-*Very much a work in progress conversion - better support and documentation coming soon!*
+_Wordcloudify.js is ported from [Wordcloudify-chrome](https://github.com/robinmalburn/wordcloudify-chrome)_
 
 Usage
 -----
@@ -19,7 +17,7 @@ $(".wordcloud").wordcloudify();
 Once the plugin is initialised on the display element, run the plugin's "render" method, passing in a jQuery selector for the element(s) you would like the word cloud to be derived from:
 
 ```javascript
-$(".wordcloud").wordcloudify("render", $("div");
+$(".wordcloud").wordcloudify("render", $("div"));
 ```
 
 The above example would generate a word cloud from every div on the page, then display the result in any element with the class "wordcloud".  **__Note:__** If the display element is a div, in this example, it's default text would also be included as part of the word cloud.
@@ -33,29 +31,30 @@ $(".wordcloud").wordcloudify("destroy");
 ###Options
 When initialising the plugin on the display element, an object may be passed in to modify the following settings:
 
->**stop_words** (_array_)  
->Expects an array of strings.  
->These words will be stripped from any text passed to the word cloud.  By default, Wordcloudify uses a common list of stop words which can be found in the [wordcloudify.js](https://github.com/robinmalburn/wordcloudify.js/blob/master/wordcloudify.js) file.  
->**__Note:__** Stop words may include apostrophes, but all other non-alphabet words are stipped from the text.  Stop words are also case incensitive and will be reordered by the plugin to try and ensure the most accurate coverage of words.
+**stop_words** (array)  
 
->**stop_words_extra** (_array_)  
->Expects an array of strings.  
->This array of words allows you to add to the list of stop words, without overwriting / replacing the default set.  This is useful if you simply want to catch a few additional phrases, perhaps specific to your use case, whilst still leaving the default set of stop words untouched.  By default, this array is empty.
+Expects an array of strings.  
+These words will be stripped from any text passed to the word cloud.  By default, Wordcloudify uses a common list of stop words which can be found in the [wordcloudify.js](https://github.com/robinmalburn/wordcloudify.js/blob/master/wordcloudify.js) file.  
+**Note:** Stop words may include apostrophes, but all other non-alphabet words are stipped from the text.  Stop words are also case incensitive and will be reordered by the plugin to try and ensure the most accurate coverage of words.
 
->**cloud_limit** (_int_)  
->This is the maximum number of words to be included in the word cloud.  Defaults to `20` and takes any positive integer as a valid value.
+**stop_words_extra** (array)  
+Expects an array of strings.  
+This array of words allows you to add to the list of stop words, without overwriting / replacing the default set.  This is useful if you simply want to catch a few additional phrases, perhaps specific to your use case, whilst still leaving the default set of stop words untouched.  By default, this array is empty.
 
->**min_length** (_int_)  
->The minimum lenth of a word to be included in the word cloud.  Defaults to `2` characters length.
+**cloud_limit** (int)  
+This is the maximum number of words to be included in the word cloud.  Defaults to `20` and takes any positive integer as a valid value.
 
->**min_font** (_number_)  
->Minimum font size to be used.  This font size will be applied to words with the lowest weight in the cloud, and increment in steps up to the max_font specification.  Defaults to `0.75`
+**min_length** (int)  
+The minimum lenth of a word to be included in the word cloud.  Defaults to `2` characters length.
 
->**max_font** (_number_)  
->Maximum font sized to be used.  This font size will be applied to words with the highest weight in the cloud, and increments in steps back to the min_font specification.  Defaults to `2.25`.
+**min_font** (number)  
+Minimum font size to be used.  This font size will be applied to words with the lowest weight in the cloud, and increment in steps up to the max_font specification.  Defaults to `0.75`
 
->**font_unit** (_string_)  
->This is the unit that will be applied to the min_font and max_font values.  Valid values are: `em`, `pt`, `%`.  Defaults to `em`
+**max_font** (number)  
+Maximum font sized to be used.  This font size will be applied to words with the highest weight in the cloud, and increments in steps back to the min_font specification.  Defaults to `2.25`.
+
+**font_unit** (string)  
+This is the unit that will be applied to the min_font and max_font values.  Valid values are: `em`, `pt`, `%`.  Defaults to `em`
 
 ####Examples Usage
 To change the available font sizes and unit, you could use the following:
