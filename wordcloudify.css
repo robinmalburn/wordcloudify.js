@@ -1,0 +1,18 @@
+/*
+ *Copyright (c) 2012 Robin Malburn
+ *See the file license.txt for copying permission.
+*/
+
+ul.wordcloudify-results{
+    text-align: center;
+    padding: 5px;
+    margin: 0;
+}
+
+ul.wordcloudify-results li.wordcloudify-item{
+    display:inline;
+    padding: 5px;
+    margin: 0;
+    vertical-align: middle;
+}
+

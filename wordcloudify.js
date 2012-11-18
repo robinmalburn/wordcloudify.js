@@ -17,6 +17,7 @@
         "them","themselves","then","there","there\'s","these","they","they\'d","they\'ll","they\'re","they\'ve","this","those","through","to","too","under","until","up","very","was","wasn\'t"
         ,"we","we\'d","we\'ll","we\'re","we\'ve","were","weren\'t","what","what\'s","when","when\'s","where","where\'s","which","while","who","who\'s","whom","why","why\'s","with","won\'t","would"
         ,"wouldn\'t","you","you\'d","you\'ll","you\'re","you\'ve","your","yours","yourself","yourselves"],
+        "stop_words_extra" : [],
         "cloud_limit" : 20,
         "min_length" : 2,
         "min_font" : 0.75,
@@ -100,13 +101,15 @@
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             
             return this.each(function(){
-                $(this).data("wordcloudify.original", $(this).clone(true));
-                $(this).data("wordcloudify.settings", settings);
+                $(this).data("wordcloudify", {
+                    "original" : $(this).clone(true), 
+                    "settings" : settings
+                });
             });
         },
         render : function(selector){
             
-            var settings = $(this).data("wordcloudify.settings") || defaults;
+            var settings = $(this).data("wordcloudify").settings || defaults;
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             
@@ -121,6 +124,11 @@
             if(typeof settings.stop_words === "object" && settings.stop_words.length > 0){
                 var stop_words_regex = new RegExp("\\b("+settings.stop_words.join("|")+")\\b", "gi");
                 text = text.replace(stop_words_regex, "");
+            }
+            
+            if(typeof settings.stop_words_extra === "object" && settings.stop_words_extra.length > 0){
+                var stop_words_extra_regex = new RegExp("\\b("+settings.stop_words_extra.join("|")+")\\b", "gi");
+                text = text.replace(stop_words_extra_regex, "");
             }
         
             var words = text.match(/\b[a-z]+('[a-z])?\b/gi);
@@ -169,9 +177,9 @@
                 
                 results = results.sort(array_sort_random);
                             
-                output += "<ul class='wordcloudify-result'>"
+                output += "<ul class='wordcloudify-results'>"
                 for(var word in results){
-                    output += "<li style='font-size:"+(settings.min_font+(font_step*(results[word].weight-min_val)))+settings.font_unit+"'>"+results[word].word+" </li>"
+                    output += "<li class='wordcloudify-item' style='font-size:"+(settings.min_font+(font_step*(results[word].weight-min_val)))+settings.font_unit+"'>"+results[word].word+" </li>"
                 }
                 output += "</ul>"
             }
