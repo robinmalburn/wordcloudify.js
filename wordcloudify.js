@@ -109,7 +109,7 @@
         },
         render : function(selector){
             
-            if(this.data("wordcloudify") === undefined || this.data("wordcloudify") === undefined){
+            if(this.data("wordcloudify") === undefined){
                 methods.init.call(this);
             }
             
