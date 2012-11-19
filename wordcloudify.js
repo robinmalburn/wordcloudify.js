@@ -95,7 +95,7 @@
     
     var methods = {
         init : function(options){
-
+            
             var settings = $.extend(true, {}, defaults, options);
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
@@ -109,7 +109,11 @@
         },
         render : function(selector){
             
-            var settings = $(this).data("wordcloudify").settings || defaults;
+            if(this.data("wordcloudify") === undefined || this.data("wordcloudify") === undefined){
+                methods.init.call(this);
+            }
+            
+            var settings = this.data("wordcloudify").settings;
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             
@@ -193,7 +197,9 @@
         },
         destroy : function(){
             return this.each(function(){
-                $(this).replaceWith($(this).data("wordcloudify.original"));
+                if($(this).data("wordcloudify") !== undefined && $(this).data("wordcloudify").original !== undefined){
+                    $(this).replaceWith($(this).data("wordcloudify").original);
+                }
             })
         }
     };
