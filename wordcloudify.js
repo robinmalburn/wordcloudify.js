@@ -1,11 +1,11 @@
 /*
  *Copyright (c) 2012 Robin Malburn
  *See the file license.txt for copying permission.
-*/
+ */
  
-/*jslint vars: true, white: true, browser: true, devel: true */ /*global $, jQuery*/
+ /*jslint vars: true, white: true, browser: true, devel: true */ /*global $, jQuery*/
 
-(function($){
+ (function($){
     "use strict";
 
     var defaults = {
@@ -31,11 +31,11 @@
      * @var object b
      * @returns int
      */
-    function array_sort_weight(a, b){
+     function array_sort_weight(a, b){
         if(a.weight === b.weight){
             return a.word > b.word ? 1 : a.word < b.word ? -1 : 0;
         }
-                
+
         return a.weight < b.weight ? 1 : -1;
     }
     
@@ -46,7 +46,7 @@
      * @var object b
      * @returns number
      */
-    function array_sort_random(a, b){
+     function array_sort_random(a, b){
         return 0.5 - Math.random();
     }
     
@@ -56,13 +56,13 @@
      * @var object b
      * @returns int
      */
-    function array_sort_stop_words(a, b){
-        
+     function array_sort_stop_words(a, b){
+
         if(a.toLowerCase()[0] === b.toLowerCase()[0]){
-        
+
             var a_index = a.indexOf("'");
             var b_index = b.indexOf("'");
-        
+
             if(a_index !== -1 && b_index === -1){
                 return -1;
             }
@@ -95,22 +95,34 @@
     
     var methods = {
         init : function(options){
-            
+
             var settings = $.extend(true, {}, defaults, options);
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             
             return this.each(function(){
-                $(this).data("wordcloudify", {
-                    "original" : $(this).clone(true), 
-                    "settings" : settings
-                });
+                if($(this).data("wordcloudify") === undefined){
+                    $(this).data("wordcloudify", {
+                        "original" : $(this).clone(true), 
+                        "settings" : settings
+                    });    
+                }
+                else{
+                    var data = $(this).data("wordcloudify");
+                    data.settings = $.extend({}, data.settings, settings);
+                    $(this).data("wordcloudify", data);
+                }
+                
             });
         },
         render : function(selector){
-            
+
             if(this.data("wordcloudify") === undefined){
                 methods.init.call(this);
+            }
+
+            if(selector === undefined){
+                selector = this;
             }
             
             var settings = this.data("wordcloudify").settings;
@@ -134,14 +146,14 @@
                 var stop_words_extra_regex = new RegExp("\\b("+settings.stop_words_extra.join("|")+")\\b", "gi");
                 text = text.replace(stop_words_extra_regex, "");
             }
-        
+
             var words = text.match(/\b[a-z]+('[a-z])?\b/gi);
-                       
+
             if(words !== null && words.length > 0){
-                
+
                 var tmp_weighted_words = {};
                 var weighted_words = [];
-            
+
                 for(var i = 0; i < words.length; i++){
                     if(words[i].length > settings.min_length){
                         if(tmp_weighted_words[words[i].toLowerCase()] === undefined){
@@ -159,9 +171,9 @@
                         "weight" :tmp_weighted_words[word]
                     });
                 }
-            
+
                 weighted_words.sort(array_sort_weight);
-            
+
                 if(weighted_words.length > 0){
                     if(settings.cloud_limit > 0){
                         results = weighted_words.slice(0, settings.cloud_limit);
@@ -172,15 +184,15 @@
                 }
             }
             var output = "";
-        
+
             if(typeof results === "object" && results.length > 0){
-            
+
                 var min_val = results.slice(-1)[0].weight;
                 var max_val = results.slice(0,1)[0].weight;
                 var font_step = (settings.max_font - settings.min_font) / (max_val - min_val);
                 
                 results = results.sort(array_sort_random);
-                            
+
                 output += "<ul class='wordcloudify-results'>"
                 for(var word in results){
                     output += "<li class='wordcloudify-item' style='font-size:"+(settings.min_font+(font_step*(results[word].weight-min_val)))+settings.font_unit+"'>"+results[word].word+" </li>"
@@ -190,7 +202,7 @@
             else{
                 output = "No valid words";
             }
-                
+
             return this.each(function(){
                 $(this).html(output);
             });
