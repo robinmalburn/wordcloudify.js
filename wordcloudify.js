@@ -99,6 +99,7 @@
             var settings = $.extend(true, {}, defaults, options);
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
+            settings.stop_words_extra = settings.stop_words_extra.sort(array_sort_stop_words);
             
             return this.each(function(){
                 if($(this).data("wordcloudify") === undefined){
