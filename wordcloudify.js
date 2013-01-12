@@ -22,7 +22,13 @@
         "min_length" : 2,
         "min_font" : 0.75,
         "max_font" : 2.25,
-        "font_unit" : "em"
+        "font_unit" : "em",
+        "source" : undefined,
+        "default_state" : "on",
+        "colors"  : {
+            "start" : "999",
+            "end" : "#000000"
+        }
     };
     
     /**
@@ -90,8 +96,126 @@
                 return 0;
             }
         }
-
     }
+
+    /**
+     * Simple conversion from hexadecimal to decimal
+     * @param string hex
+     * @return int
+     */
+    function hex2dec(hex){
+        return parseInt(hex, 16);
+    }
+
+    /**
+     * Simple conversion from decimal to hexadecimal with CSS-friendly padding
+     * @param int dec
+     * @return string
+     */
+    function dec2hex(dec){
+        //ensure we're only ever dealing wtih integers
+        var hex = Math.floor(dec).toString(16);
+
+        //if the hexstring is a single character, pad with a leading zero
+        if(hex.length === 1){
+            hex = "0"+hex;
+        }
+
+        return hex;
+    }
+
+    /**
+     * Converts the given colour into an object containing the full hex colour as well as split into red, green and blue hex components
+     * @param  string color Hex colour string, either full or short form
+     * @return object
+     */
+    function parse_color(color){
+        if(color.length === 4 || color.length === 7){
+            color = color.replace("#", "");
+        }
+
+        if(color.length === 3){
+            //Expand 3 character hex colours to 6 character code
+            color = color.replace(/(\w)(\w)(\w)/gi, "\$10\$20\$30");
+        }
+
+        if(color.length !== 6){
+            return false;
+        }
+
+        color = /(\w{2})(\w{2})(\w{2})/.exec(color);
+
+        color = {
+            "color" : "#"+color[0],
+            "hex" : {
+                "red" : color[1],
+                "green" : color[2],
+                "blue" : color[3]    
+            },
+            "rgb" : {
+                "red" : hex2dec(color[1]),
+                "green" : hex2dec(color[2]),
+                "blue" : hex2dec(color[3]) 
+            }
+        };
+
+        return color;
+    }
+
+    /**
+     * Gets the colour steps required to get from the start colour to the end colour
+     * @param  object start Start colour object
+     * @param  object end   End colour object
+     * @param  int range The range, i.e. number of steps, required
+     * @return object
+     */
+    function color_to_step(start, end, range){
+        var color = {
+            "rgb" : {
+                "red" : Math.round((end.rgb.red - start.rgb.red) / range),
+                "green" : Math.round((end.rgb.green - start.rgb.green) / range),
+                "blue" : Math.round((end.rgb.blue - start.rgb.blue) / range)
+            }, 
+            "hex" : {}
+        };
+
+        color.hex = {
+            "red" : dec2hex(color.rgb.red),
+            "green" : dec2hex(color.rgb.green),
+            "blue" : dec2hex(color.rgb.blue)
+        };
+
+        return color;
+    }
+
+    /**
+     * Gets the new colour based on start point, colour step and weight
+     * @param  object start  Start colour object
+     * @param  object step   Step colour object
+     * @param  int weight Weight to apply to colour
+     * @return object
+     */
+    function color_from_step(start, step, weight){
+        var color = {};
+
+        color.rgb = {
+            "red" : start.rgb.red+(step.rgb.red*weight),
+            "green" : start.rgb.green+(step.rgb.green*weight),
+            "blue" : start.rgb.blue+(step.rgb.blue*weight)
+        };
+
+        color.hex = {
+            "red" : dec2hex(color.rgb.red),
+            "green" : dec2hex(color.rgb.green),
+            "blue" : dec2hex(color.rgb.blue),
+        }
+
+        color.color = "#"+color.hex.red+color.hex.green+color.hex.blue;
+
+        return color;
+    }
+
+
     
     var methods = {
         init : function(options){
@@ -100,12 +224,24 @@
             
             settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
             settings.stop_words_extra = settings.stop_words_extra.sort(array_sort_stop_words);
+
+            if(settings.source === undefined){
+                settings.source = this;
+            }
+
+            settings.colors.start = parse_color(settings.colors.start);
+            settings.colors.end = parse_color(settings.colors.end);
+
+            //if invalid colours were passed in, catch it heare and reset to default colour scheme
+            settings.colors.start = settings.colors.start === false ? defaults.colors.start : settings.colors.start;
+            settings.colors.end = settings.colors.end === false ? defaults.colors.end : settings.colors.end;
             
             return this.each(function(){
                 if($(this).data("wordcloudify") === undefined){
                     $(this).data("wordcloudify", {
                         "original" : $(this).clone(true), 
-                        "settings" : settings
+                        "settings" : settings,
+                        "state" : undefined
                     });    
                 }
                 else{
@@ -113,38 +249,76 @@
                     data.settings = $.extend({}, data.settings, settings);
                     $(this).data("wordcloudify", data);
                 }
-                
+
+                if(settings.default_state === "on")
+                {
+                    methods.on.call($(this));
+                }
+            });
+        },
+        on : function(){
+            return this.each(function(){
+                var data = $(this).data("wordcloudify");
+                if(data !== undefined && data.state !== "on"){
+                    methods.render.apply($(this));
+                }
+            });
+        },
+        off : function(){
+            return this.each(function(){
+                var data = $(this).data("wordcloudify");
+                if(data !== undefined && data.state === "on"){
+                    data.state = "off";
+                    var clone = data.original.clone();
+                    clone.data("wordcloudify", data);
+
+                    $(this).replaceWith(clone);
+                }
+            });
+        },
+        toggle : function(){
+            return this.each(function(){
+                var data = $(this).data("wordcloudify");
+                if(data !== undefined){
+                    if(data.state !== "on"){
+                        methods.on.call($(this));
+                    }
+                    else{
+                        methods.off.call($(this));
+                    }
+                }
             });
         },
         render : function(selector){
+            var data = this.data("wordcloudify");
 
-            if(this.data("wordcloudify") === undefined){
+            if(data === undefined){
                 methods.init.call(this);
+                data = this.data("wordcloudify");                
             }
 
             if(selector === undefined){
-                selector = this;
+                selector = data.settings.source;
             }
             
-            var settings = this.data("wordcloudify").settings;
-            
-            settings.stop_words = settings.stop_words.sort(array_sort_stop_words);
+            data.settings.stop_words = data.settings.stop_words.sort(array_sort_stop_words);
+            data.settings.stop_words_extra = data.settings.stop_words_extra.sort(array_sort_stop_words);
             
             var text = "";
             
             var results = false;
 
             selector.each(function(){
-                text += $(this).text();
+                text += $(this).text()+" ";
             });
 
-            if(typeof settings.stop_words === "object" && settings.stop_words.length > 0){
-                var stop_words_regex = new RegExp("\\b("+settings.stop_words.join("|")+")\\b", "gi");
+            if(typeof data.settings.stop_words === "object" && data.settings.stop_words.length > 0){
+                var stop_words_regex = new RegExp("\\b("+data.settings.stop_words.join("|")+")\\b", "gi");
                 text = text.replace(stop_words_regex, "");
             }
             
-            if(typeof settings.stop_words_extra === "object" && settings.stop_words_extra.length > 0){
-                var stop_words_extra_regex = new RegExp("\\b("+settings.stop_words_extra.join("|")+")\\b", "gi");
+            if(typeof data.settings.stop_words_extra === "object" && data.settings.stop_words_extra.length > 0){
+                var stop_words_extra_regex = new RegExp("\\b("+data.settings.stop_words_extra.join("|")+")\\b", "gi");
                 text = text.replace(stop_words_extra_regex, "");
             }
 
@@ -156,7 +330,7 @@
                 var weighted_words = [];
 
                 for(var i = 0; i < words.length; i++){
-                    if(words[i].length > settings.min_length){
+                    if(words[i].length > data.settings.min_length){
                         if(tmp_weighted_words[words[i].toLowerCase()] === undefined){
                             tmp_weighted_words[words[i].toLowerCase()] = 1;
                         }
@@ -176,8 +350,8 @@
                 weighted_words.sort(array_sort_weight);
 
                 if(weighted_words.length > 0){
-                    if(settings.cloud_limit > 0){
-                        results = weighted_words.slice(0, settings.cloud_limit);
+                    if(data.settings.cloud_limit > 0){
+                        results = weighted_words.slice(0, data.settings.cloud_limit);
                     }
                     else{
                         results = weighted_words;
@@ -190,13 +364,16 @@
 
                 var min_val = results.slice(-1)[0].weight;
                 var max_val = results.slice(0,1)[0].weight;
-                var font_step = (settings.max_font - settings.min_font) / (max_val - min_val);
+                var font_step = (data.settings.max_font - data.settings.min_font) / (max_val - min_val);
+                var color_step =  color_to_step(data.settings.colors.start, data.settings.colors.end, (max_val - min_val));
                 
                 results = results.sort(array_sort_random);
 
                 output += "<ul class='wordcloudify-results'>"
                 for(var word in results){
-                    output += "<li class='wordcloudify-item' style='font-size:"+(settings.min_font+(font_step*(results[word].weight-min_val)))+settings.font_unit+"'>"+results[word].word+" </li>"
+                    var new_font = (data.settings.min_font+(font_step*(results[word].weight-min_val)))+data.settings.font_unit;
+                    var new_color = color_from_step(data.settings.colors.start, color_step, (results[word].weight-min_val));
+                    output += "<li class='wordcloudify-item' data-weight='"+results[word].weight+"' style='font-size:"+new_font+";color: "+new_color.color+";'>"+results[word].word+" </li>"
                 }
                 output += "</ul>"
             }
@@ -205,15 +382,18 @@
             }
 
             return this.each(function(){
+                data.state = "on";
+                $(this).data("wordcloudify", data);
                 $(this).html(output);
             });
         },
         destroy : function(){
             return this.each(function(){
-                if($(this).data("wordcloudify") !== undefined && $(this).data("wordcloudify").original !== undefined){
-                    $(this).replaceWith($(this).data("wordcloudify").original);
+                var data = $(this).data("wordcloudify");
+                if(data !== undefined && data.original !== undefined){
+                    $(this).replaceWith(data.original);
                 }
-            })
+            });
         }
     };
 
