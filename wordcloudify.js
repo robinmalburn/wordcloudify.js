@@ -27,7 +27,8 @@
         "default_state" : "on",
         "colors"  : {
             "start" : "999",
-            "end" : "#000000"
+            "end" : "#000000",
+            "enabled" : true
         }
     };
     
@@ -229,12 +230,16 @@
                 settings.source = this;
             }
 
-            settings.colors.start = parse_color(settings.colors.start);
-            settings.colors.end = parse_color(settings.colors.end);
+            if(settings.colors.enabled === true){
+                settings.colors.start = parse_color(settings.colors.start);
+                settings.colors.end = parse_color(settings.colors.end);
 
-            //if invalid colours were passed in, catch it heare and reset to default colour scheme
-            settings.colors.start = settings.colors.start === false ? defaults.colors.start : settings.colors.start;
-            settings.colors.end = settings.colors.end === false ? defaults.colors.end : settings.colors.end;
+                //If either the start or end colour were invalid, disable colour support
+                if(settings.colors.start === false || settings.colors.end === false){
+                    settings.colors.enabled = false;
+                }
+            
+            }
             
             return this.each(function(){
                 if($(this).data("wordcloudify") === undefined){
@@ -365,15 +370,22 @@
                 var min_val = results.slice(-1)[0].weight;
                 var max_val = results.slice(0,1)[0].weight;
                 var font_step = (data.settings.max_font - data.settings.min_font) / (max_val - min_val);
-                var color_step =  color_to_step(data.settings.colors.start, data.settings.colors.end, (max_val - min_val));
+
+                if(data.settings.colors.enabled === true){
+                    var color_step =  color_to_step(data.settings.colors.start, data.settings.colors.end, (max_val - min_val));
+                }
                 
                 results = results.sort(array_sort_random);
 
                 output += "<ul class='wordcloudify-results'>"
                 for(var word in results){
                     var new_font = (data.settings.min_font+(font_step*(results[word].weight-min_val)))+data.settings.font_unit;
-                    var new_color = color_from_step(data.settings.colors.start, color_step, (results[word].weight-min_val));
-                    output += "<li class='wordcloudify-item' data-weight='"+results[word].weight+"' style='font-size:"+new_font+";color: "+new_color.color+";'>"+results[word].word+" </li>"
+                    if(data.settings.colors.enabled === true){
+                        var new_color = color_from_step(data.settings.colors.start, color_step, (results[word].weight-min_val));
+                    }
+
+
+                    output += "<li class='wordcloudify-item' data-weight='"+results[word].weight+"' style='font-size:"+new_font+";"+(data.settings.colors.enabled === true ? "color: "+new_color.color+";" : "")+"'>"+results[word].word+" </li>"
                 }
                 output += "</ul>"
             }
