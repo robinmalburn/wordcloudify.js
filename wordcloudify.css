@@ -13,6 +13,7 @@ ul.wordcloudify-results li.wordcloudify-item{
     display:inline;
     padding: 5px;
     margin: 0;
+    line-height: 1.25em;
     vertical-align: middle;
 }
 
